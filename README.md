@@ -1,72 +1,103 @@
 # Discord Verify Bot
 
-Phone number whitelist verification bot with optional WhatsApp group sync.
+Phone number whitelist verification bot for Discord, with WhatsApp group sync via your existing WA bot.
 
-## Setup
+## Directory Structure
+```
+/home/julius/discord-verify/    ← Discord bot
+├── index.js
+├── package.json
+├── .env
+├── data/
+│   └── verify.db               ← auto-created on first run
+└── src/
+    ├── db.js
+    ├── verify.js
+    └── commands.js
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
+/home/julius/wa-bot/            ← your existing WA bot
+└── plugins/
+    └── wa-verify.js            ← only file you add here
+```
 
-2. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your DISCORD_TOKEN
-   ```
+## Discord Bot Setup
 
-3. **Discord Developer Portal** — your bot needs these:
-   - Privileged intents: `Server Members Intent` + `Message Content Intent`
-   - Permissions: `Manage Roles`, `Send Messages`, `Read Messages`
+1. Install dependencies
+```bash
+cd /home/julius/discord-verify
+npm install discord.js sql.js dotenv
+```
 
-4. **Create a `Verified` role** in your server (or set a different name in `.env`)
+2. Create your `.env` file
+```
+DISCORD_TOKEN=your_bot_token_here
+VERIFIED_ROLE=Verified
+```
 
-5. **Run the bot**
-   ```bash
-   node index.js
-   # or with PM2:
-   pm2 start index.js --name verify-bot
-   ```
+3. In the Discord Developer Portal, enable these privileged intents:
+   - Server Members Intent
+   - Message Content Intent
 
-6. **Post the verification panel** — in any channel, type:
-   ```
-   !postpanel
-   ```
+   And make sure the bot has these permissions:
+   - Manage Roles
+   - Send Messages
+   - Read Messages
 
----
+4. Create a role called `Verified` in your server (or set a different name in `.env`)
 
-## Admin Commands
+5. Run the bot
+```bash
+node index.js
+# or with PM2:
+pm2 start index.js --name verify-bot
+```
 
-| Command | Description |
-|---|---|
-| `!addnum +60123456789` | Add a phone number to the whitelist |
-| `!removenum +60123456789` | Remove a number |
-| `!listnum` | List all numbers + who has claimed them |
-| `!unverify @user` | Remove verification from a user and free their number |
+6. In any Discord channel, type `!postpanel` — this posts the verification button. Then you can delete your message; the panel stays.
 
-### WhatsApp Sync
+## WA Bot Setup
 
-| Command | Description |
-|---|---|
-| `!waconnect` | Start WhatsApp — scan QR from **server console** |
-| `!wagroups` | List all WA groups + their JIDs |
-| `!wasync <groupJid>` | Bulk-import all member numbers from a group |
+1. Install sql.js in your WA bot directory
+```bash
+cd /home/julius/wa-bot
+npm install sql.js
+```
 
-**WA sync flow:**
-1. `!waconnect` → scan QR in console
-2. `!wagroups` → copy the JID of your target group
-3. `!wasync 120363xxxxxxx@g.us` → done
+2. Drop `wa-verify.js` into your `plugins/` folder
 
-Auth is saved to `data/wa-auth/` so you only scan once.
+3. Open `wa-verify.js` and update the DB path at the top to match your Discord bot location:
+```js
+const DB_PATH = '/home/julius/discord-verify/data/verify.db'
+```
 
----
+4. Restart your WA bot — the commands are auto-loaded
 
 ## How Verification Works
 
-1. User clicks **Verify Me** button in the panel channel
-2. A modal pops up asking for their phone number
-3. Bot checks if the number is in the DB and unclaimed
-4. If yes → assigns `Verified` role and binds their Discord ID to that number
-5. If the user leaves the server → number is automatically freed
+1. User clicks **Verify Me** in the Discord panel
+2. A popup asks for their phone number
+3. Bot checks if the number is in the database and unclaimed
+4. If yes → assigns the `Verified` role and locks that number to their account
+5. If the user leaves the server → number is automatically freed for someone else
 
-One number = one account. No double-claiming.
+One number = one Discord account. No double-claiming.
+
+## Discord Admin Commands
+
+| Command | Description |
+|---|---|
+| `!postpanel` | Post the verification button in the current channel |
+| `!addnum +60123456789` | Add a number to the whitelist |
+| `!removenum +60123456789` | Remove a number |
+| `!listnum` | List all numbers and who has claimed them |
+| `!unverify @user` | Remove verification from a user and free their number |
+
+## WA Commands (owner/admin only)
+
+| Command | Description |
+|---|---|
+| `!wasync` | Sync all members of the current group into the DB |
+| `!walist` | List all numbers in the DB |
+| `!waadd +60123456789` | Manually add a number |
+| `!waremove +60123456789` | Manually remove a number |
+
+> `!wasync` must be run inside the WhatsApp group you want to pull members from.
