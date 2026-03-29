@@ -4,7 +4,7 @@ Phone number whitelist verification bot for Discord, with WhatsApp group sync vi
 
 ## Directory Structure
 ```
-/home/julius/discord-verify/    ← Discord bot
+/home/root/discord-verify/    ← Discord bot
 ├── index.js
 ├── package.json
 ├── .env
@@ -15,7 +15,7 @@ Phone number whitelist verification bot for Discord, with WhatsApp group sync vi
     ├── verify.js
     └── commands.js
 
-/home/julius/wa-bot/            ← your existing WA bot
+/home/root/wa-bot/            ← your existing WA bot
 └── plugins/
     └── wa-verify.js            ← only file you add here
 ```
@@ -24,7 +24,7 @@ Phone number whitelist verification bot for Discord, with WhatsApp group sync vi
 
 1. Install dependencies
 ```bash
-cd /home/julius/discord-verify
+cd /home/root/discord-verify
 npm install discord.js sql.js dotenv
 ```
 
@@ -58,7 +58,7 @@ pm2 start index.js --name verify-bot
 
 1. Install sql.js in your WA bot directory
 ```bash
-cd /home/julius/wa-bot
+cd /home/rootwa-bot
 npm install sql.js
 ```
 
@@ -66,7 +66,7 @@ npm install sql.js
 
 3. Open `wa-verify.js` and update the DB path at the top to match your Discord bot location:
 ```js
-const DB_PATH = '/home/julius/discord-verify/data/verify.db'
+const DB_PATH = '/home/root/discord-verify/data/verify.db'
 ```
 
 4. Restart your WA bot — the commands are auto-loaded
